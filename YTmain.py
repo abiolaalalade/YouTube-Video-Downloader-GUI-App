@@ -1,79 +1,60 @@
-from os import path
-from tkinter import*
-from tkinter import filedialog
-from moviepy import *
+import os
+import shutil
+from tkinter import Tk, Canvas, PhotoImage, Label, Entry, Button, filedialog
 from moviepy.editor import VideoFileClip
 from pytube import YouTube
-#allows us to copy files an dfolders and move them to whatever location the use wants to
-import shutil
 
-#fucntionality
-def selectPath():
-    #allows user to select path to send the download
-    path = filedialog.askdirectory()
-    pathLabel.configure(text=path)
-def downloadFile():
-    # Get user's path
-    getLink = linkField.get()
+# Function to select path for download
+def select_path():
+    selected_path = filedialog.askdirectory()
+    path_label.config(text=selected_path)
 
-    #get selected path
-    userPath = pathLabel.cget('text')
-    screen.title('Downloading....')
+# Function to download the file
+def download_file():
+    # Get user input link
+    link = link_field.get()
+    # Get selected path
+    download_path = path_label.cget("text")
+    # Update screen title
+    screen.title("Downloading....")
+    # Download video
+    mp4_video = YouTube(link).streams.get_highest_resolution().download()
+    video_clip = VideoFileClip(mp4_video)
+    video_clip.close()
+    # Move to selected directory
+    shutil.move(mp4_video, download_path)
+    # Update screen title
+    screen.title("Download Complete! Download Another File")
 
-    #download video
-    mp4Video = YouTube(getLink).streams.get_highest_resolution().download()
-    #mp4Video = YouTube(getLink).streams.order_by("resolution").desc()[0].download()
-    videoClip = VideoFileClip(mp4Video)
-    videoClip.close()
-
-    #move to selected directory
-    shutil.move(mp4Video, userPath)
-    screen.title('Download Complete! Download Another File')
-
-
-
-
-############################# adding canvas,buttons, widgets, etc
-#create screen
+# Create screen
 screen = Tk()
-title = screen.title("Youtube Downloader")
+screen.title("Youtube Downloader")
 
-#size of screen
-canvas = Canvas(screen, width=700,height=700)
+# Canvas
+canvas = Canvas(screen, width=700, height=700)
 canvas.pack()
-#canvas.configure(bg='white')
 
-#import logo
-imageLogo = PhotoImage(file='YTLogo.png')
+# Logo
+logo = PhotoImage(file="YTLogo.png").subsample(1, 1)
+canvas.create_image(350, 120, image=logo)
 
-#add image to canvas
-#resize
-imageLogo = imageLogo.subsample(1,1)
-#set position
-                     #x   y
-canvas.create_image(350, 120, image=imageLogo)
+# Link field
+link_field = Entry(screen, width=50)
+link_label = Label(screen, text="Enter the YouTube Download Link:", font=("Arial", 10))
 
-#link field
-linkField = Entry(screen, width=50)
-linkLabel = Label(screen, text='Enter the YouTube Download Link:', font=('Arial',10))
+# Path selection
+path_label = Label(screen, text="Select the path for the download", font=("Arial", 10))
+select_button = Button(screen, text="Select", command=select_path)
 
-#Select path for saving file
-pathLabel = Label(screen, text='Select the path for the download', font=('Arial',10))
-select_button = Button(screen, text='Select', command=selectPath)
-#add to windows
-canvas.create_window(350, 250, window=pathLabel)
+# Widgets placement
+canvas.create_window(350, 200, window=link_label)
+canvas.create_window(350, 220, window=link_field)
+canvas.create_window(350, 250, window=path_label)
 canvas.create_window(350, 290, window=select_button)
 
+# Download button
+download_button = Button(screen, text="Download File", command=download_file)
+canvas.create_window(350, 330, window=download_button)
 
-#- add to widgest tot the window
-canvas.create_window(350,200, window=linkLabel)
-canvas.create_window(350,220, window=linkField)
-
-#Download Buttons
-downloadBtn = Button(screen, text='Download File',command=downloadFile)
-canvas.create_window(350,330, window=downloadBtn)
-
-############################# adding functionality
-
-
+# Start GUI
 screen.mainloop()
